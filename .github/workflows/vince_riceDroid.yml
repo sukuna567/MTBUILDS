@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Setup git and install repo
         run: |
-          git config --global user.email "rom-builder@rest.eu.org"
-          git config --global user.name "ROM BUILDER"
+          git config --global user.email "bhudev12364@gmail.com"
+          git config --global user.name "sukuna567"
           git config --global pull.rebase true  
           sudo apt-get update -y && sudo apt-get install repo -y
           
@@ -28,73 +28,73 @@ jobs:
     needs: Repo_git
     steps:
       - name: Clone Device Tree
-        run: git clone https://github.com/anandhan07/android_device_xiaomi_vince -b ricedroid-13.0 device/xiaomi/vince || ( cd device/xiaomi/vince && git fetch && git pull )
+        run: git clone https://github.com/sukuna567/android_device_realme_RM6785-common.git -b lineage-22.2 device/realme/RM6785-common || ( cd device/realme/RM6785-common && git fetch && git pull )
         
   Vendor_tree:
     runs-on: self-hosted
     needs: Repo_git
     steps:
       - name: Clone Vendor Tree
-        run: git clone https://github.com/anandhan07/android_vendor_xiaomi_vince -b 13.0 vendor/xiaomi/vince || ( cd vendor/xiaomi/vince && git fetch && git pull )
+        run: git clone https://github.com/elohim-etz/android_vendor_realme_RM6785.git -b bka vendor/realme_RM6785 || ( cd vendor/realme_RM6785 && git fetch && git pull )
       
   Kernel_tree:
     runs-on: self-hosted
     needs: Repo_git
     steps:
       - name: Clone Kernel Tree
-        run: git clone https://github.com/GhostMaster69-dev/android_kernel_xiaomi_vince -b master kernel/xiaomi/vince || ( cd kernel/xiaomi/vince && git fetch && git pull )
+        run: git clone https://github.com/sarthakroy2002/kernel_realme_wasabi.git -b R kernel/realme/wasabi || ( cd kernel/realme/wasabi && git fetch && git pull )
       
   Clang:
     runs-on: self-hosted
     needs: Repo_git
     steps:
       - name: Fetch clang
-        run: git clone --depth=1 https://gitlab.com/anandhan07/aosp-clang.git -b clang-15.0.3 prebuilts/clang/host/linux-x86/clang-r468909b || ( cd prebuilts/clang/host/linux-x86/clang-r468909b && git fetch && git pull )
+        run: https://gitlab.com/LeCmnGend/clang.git -b clang-19 clang || ( cd clang && git fetch && git pull )
   
-  FMRadio:
+  MTK_Hardware:
     runs-on: self-hosted
     needs: Repo_git
     steps:
-      - name: Fetch Revamped FM Radio
-        run: git clone --depth=1 https://github.com/iusmac/RevampedFMRadio -b qcom packages/apps/RevampedFMRadio || (cd packages/apps/RevampedFMRadio && git fetch && git pull)   
+      - name: Fetch mtk hardware
+        run: git clone https://github.com/sukuna567/android_hardware_mediatek.git -b lineage-22.2 hardware/mediatek || (cd hardware/mediatek && git fetch && git pull)   
   
-  Viper:
+  Sepolicy_vendor:
     runs-on: self-hosted
     needs: Repo_git
     steps:
-      - name: Fetch ViperFX
-        run: git clone --depth=1 https://gitlab.com/anandhan07/packages_apps_ViPER4AndroidFX.git -b master packages/apps/ViPER4AndroidFX || (cd packages/apps/ViPER4AndroidFX && git fetch && git pull)
+      - name: Fetch Sepolicy vendor
+        run: git clone https://github.com/sukuna567/android_device_mediatek_sepolicy_vndr.git -b lineage-22.2 device/mediatek/sepolicy_vndr || (cd device/mediatek/sepolicy_vndr && git fetch && git pull)
 
   Setup_source:
     runs-on: self-hosted
     needs: [Repo_git]
     steps:
       - name: Setup source
-        run: repo init --depth=1 --no-repo-verify -u https://github.com/ricedroidOSS/android -b thirteen -g default,-mips,-darwin,-notdefault || echo "Already done"
+        run: repo init -u https://github.com/LineageOS/android.git -b lineage-22.2 --git-lfs || echo "Already done"
         
   Sync_source:
     runs-on: self-hosted
     needs: Setup_source
     steps:
       - name: Delete existing builds folders
-        run: rm -rf out/target/product/vince || echo "Doesn't exist"
+        run: rm -rf out/target/product/RM6785 || echo "Doesn't exist"
         
       - name: Sync source
-        run: repo sync -c --no-clone-bundle --force-remove-dirty --optimized-fetch --prune --force-sync -j8
+        run: repo sync
         
   Build_rom_vanilla:
     runs-on: self-hosted
-    needs: [Sync_source, depends, Clang, Device_tree, Vendor_tree, Kernel_tree, FMRadio, Viper]
+    needs: [Sync_source, depends, Clang, Device_tree, Vendor_tree, Kernel_tree, MTK_Hardware, Sepolicy_vendor]
     steps:
       - name: Build Vanilla
-        run: . build/envsetup.sh && lunch lineage_vince-user && mka bacon | tee log.txt
+        run: . build/envsetup.sh && launch lineage22.2-user && mka bacon | tee log.txt
         
   Build_rom_gapps:
     runs-on: self-hosted
     needs: Build_rom_vanilla
     steps:
       - name: Build Gapps
-        run: . build/envsetup.sh && lunch lineage_vince-user && export WITH_GMS=true && mka bacon | tee log.txt
+        run: . build/envsetup.sh && launch lineage22.2-userdebug && export WITH_GMS=true && mka bacon | tee log.txt
         
   Release:
     runs-on: self-hosted
@@ -107,9 +107,9 @@ jobs:
         - name: Upload modules to release
           uses: svenstaro/upload-release-action@v2
           with:
-            repo_token: ${{ secrets.RELEASE_TOKEN }}
-            repo_name: rom-builder/Vince-RiceDroid
+            repo_token: ${{ secrets.RELEASE_TOKE }}
+            repo_name: sukuna567/sukuna567
             tag: ${{ steps.tag_code.outputs.TAG }}
-            release_name: ${{ steps.tag_code.outputs.TAG }}
+            release_name: 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
             file_glob: true
-            file: out/target/product/vince/riceDroid*
+            file: out/target/product/RM6785/lineageOS*
