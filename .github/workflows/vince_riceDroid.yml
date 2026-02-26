@@ -1,4 +1,4 @@
-name: Vince RiceDroid old
+name: LineageOS Realme
 on:
   workflow_dispatch
   
@@ -112,4 +112,4 @@ jobs:
             tag: ${{ steps.tag_code.outputs.TAG }}
             release_name: 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
             file_glob: true
-            file: out/target/product/RM6785/lineageOS*
+            file: out/target/product/RM6785/lineage-22.2*
