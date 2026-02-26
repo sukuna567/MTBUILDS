@@ -1,3 +1,40 @@
 {
-    "repos": []
+  "repos": [
+    {
+      "repo": "https://github.com/sukuna567/android_device_realme_RM6785-common.git",
+      "dir": "device/realme/RM6785-common",
+      "branch": "lineage-22.2",
+      "before_sync": true
+    },
+    {
+      "repo": "clone https://github.com/elohim-etz/android_vendor_realme_RM6785.git",
+      "dir": "vendor/realme_RM6785",
+      "branch": "lineage-22.2",
+      "before_sync": true
+    },
+    {
+      "repo": "clone https://github.com/sarthakroy2002/kernel_realme_wasabi.git",
+      "branch": "R",
+      "dir": "kernel/realme/wasabi",
+      "before_sync": true
+    },
+    {
+      "repo": "https://gitlab.com/LeCmnGend/clang.git",
+      "dir": "clang",
+      "branch": "clang-19",
+      "before_sync": false
+    },
+    {
+      "repo": "git clone https://github.com/sukuna567/android_hardware_mediatek.git",
+      "dir": "hardware/mediatek",
+      "branch": "lineage-22.2",
+      "before_sync": false
+    },
+    {
+      "repo": "git clone https://github.com/sukuna567/android_device_mediatek_sepolicy_vndr.git",
+      "dir": "device/mediatek/sepolicy_vndr",
+      "branch": "lineage-22.2",
+      "before_sync": false
+    }
+  ]
 }
