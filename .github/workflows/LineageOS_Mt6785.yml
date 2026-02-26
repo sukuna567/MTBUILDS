@@ -1,4 +1,4 @@
-name: LineageOS-22.2 for Realme RM6785
+name: LineageOS Realme
 on:
   workflow_dispatch
   
