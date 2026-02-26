@@ -1,0 +1,115 @@
+name: LineageOS-22.2 for Realme RM6785
+on:
+  workflow_dispatch
+  
+concurrency:
+  group: ${{  github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Repo_git:
+    runs-on: self-hosted
+    steps:
+      - name: Setup git and install repo
+        run: |
+          git config --global user.email "bhudev12364@gmail.com"
+          git config --global user.name "sukuna567"
+          git config --global pull.rebase true  
+          sudo apt-get update -y && sudo apt-get install repo -y
+          
+  depends:
+    runs-on: self-hosted
+    steps:
+      - name: Install requirerd dependencies
+        run: sudo apt-get install git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip openssl libssl-dev fontconfig -y
+        
+  Device_tree:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Clone Device Tree
+        run: git clone https://github.com/sukuna567/android_device_realme_RM6785-common.git -b lineage-22.2 device/realme/RM6785-common || ( cd device/realme/RM6785-common && git fetch && git pull )
+        
+  Vendor_tree:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Clone Vendor Tree
+        run: git clone https://github.com/elohim-etz/android_vendor_realme_RM6785.git -b bka vendor/realme_RM6785 || ( cd vendor/realme_RM6785 && git fetch && git pull )
+      
+  Kernel_tree:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Clone Kernel Tree
+        run: git clone https://github.com/sarthakroy2002/kernel_realme_wasabi.git -b R kernel/realme/wasabi || ( cd kernel/realme/wasabi && git fetch && git pull )
+      
+  Clang:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Fetch clang
+        run: https://gitlab.com/LeCmnGend/clang.git -b clang-19 clang || ( cd clang && git fetch && git pull )
+  
+  MTK_Hardware:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Fetch mtk hardware
+        run: git clone https://github.com/sukuna567/android_hardware_mediatek.git -b lineage-22.2 hardware/mediatek || (cd hardware/mediatek && git fetch && git pull)   
+  
+  Sepolicy_vendor:
+    runs-on: self-hosted
+    needs: Repo_git
+    steps:
+      - name: Fetch Sepolicy vendor
+        run: git clone https://github.com/sukuna567/android_device_mediatek_sepolicy_vndr.git -b lineage-22.2 device/mediatek/sepolicy_vndr || (cd device/mediatek/sepolicy_vndr && git fetch && git pull)
+
+  Setup_source:
+    runs-on: self-hosted
+    needs: [Repo_git]
+    steps:
+      - name: Setup source
+        run: repo init -u https://github.com/LineageOS/android.git -b lineage-22.2 --git-lfs || echo "Already done"
+        
+  Sync_source:
+    runs-on: self-hosted
+    needs: Setup_source
+    steps:
+      - name: Delete existing builds folders
+        run: rm -rf out/target/product/RM6785 || echo "Doesn't exist"
+        
+      - name: Sync source
+        run: repo sync
+        
+  Build_rom_vanilla:
+    runs-on: self-hosted
+    needs: [Sync_source, depends, Clang, Device_tree, Vendor_tree, Kernel_tree, MTK_Hardware, Sepolicy_vendor]
+    steps:
+      - name: Build Vanilla
+        run: . build/envsetup.sh && launch lineage22.2-user && mka bacon | tee log.txt
+        
+  Build_rom_gapps:
+    runs-on: self-hosted
+    needs: Build_rom_vanilla
+    steps:
+      - name: Build Gapps
+        run: . build/envsetup.sh && launch lineage22.2-userdebug && export WITH_GMS=true && mka bacon | tee log.txt
+        
+  Release:
+    runs-on: self-hosted
+    needs: [Build_rom_vanilla, Build_rom_gapps]
+    steps:
+        - name: Prepare tag
+          id: tag_code
+          run: echo "TAG=$(date +'v%d-%m-%Y-%H%M%S')" >> $GITHUB_OUTPUT
+          
+        - name: Upload modules to release
+          uses: svenstaro/upload-release-action@v2
+          with:
+            repo_token: ${{ secrets.RELEASE_TOKE }}
+            repo_name: sukuna567/sukuna567
+            tag: ${{ steps.tag_code.outputs.TAG }}
+            release_name: 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
+            file_glob: true
+            file: out/target/product/RM6785/lineage-22.2*
